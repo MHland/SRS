@@ -4,6 +4,7 @@
 @name: SRS algorithm
 @author: Wei Haoshan
 @Time: 2022/1/17
+@Update: 2022/11/19
 @dependencies: numpy
 """
 # Refer to paper:
@@ -13,8 +14,8 @@ import numpy as np
 import time
 
 class SRS:
-    def __init__(self,n,bl,bu,p=3,sp=None,deps=5,delta=0.3,Vectorization=False,\
-                num=20000,MAX=False,OptimalValue=None,ObjectiveLimit=None,eps=4,\
+    def __init__(self,n,bl,bu,p=3,sp=None,deps=12,delta=0.01,Vectorization=False,\
+                num=None,MAX=False,OptimalValue=None,ObjectiveLimit=None,eps=4,\
                 ShortLambda=0.02,LongLambda=0.2,InitialLt=3,Lt=2):
         '''
         n:  The dimension of the objective function.
@@ -27,10 +28,10 @@ class SRS:
         | sp            | int     | sp=p(p<=5)  | Its range is [3, p]
         |               |         | sp=5(5<p<12)|
         |               |         | sp=12(p<=12)|
-        | deps          | float   | 5           | Its range is (0, +infty),
+        | deps          | float   | 10           | Its range is (0, +infty),
         |               |         |             | It is a key parameter for adjusting the precision,
         |               |         |             | The larger the value, the higher the precision and the longer the time
-        | delta         | float   | 0.3         | Its range is (0, 0.5),
+        | delta         | float   | 0.01         | Its range is (0, 0.5),
         |               |         |             | It is a key parameter for adjusting the precision,
         |               |         |             | the larger the value, the higher the precision and the longer the time
         | Vectorization | bool    | False       | Whether the objective function satisfies the vectorization condition
@@ -58,9 +59,15 @@ class SRS:
         for i in range(n):
             bl[i,0],bu[i,0] = blp[i],bup[i]
         if Vectorization:
-            num = 2000
+            if num is None:
+                num = 2000
+            else:
+                num = num
         else:
-            num = 20000
+            if num is None:
+                num = 20000
+            else:
+                num = num
         # set p
         if p < 3:
             p = 3
@@ -206,6 +213,8 @@ class SRS:
         return x
 
     def SRS_run(self,func,*args):
+        FE = []
+        iter_best_global = []
         T1 = time.time()
         n = self.n
         p = self.p
@@ -292,6 +301,8 @@ class SRS:
                 Xp[:,i] = xp[:,indexY]
             indexYb = np.argmax(y)
             Xb[:,0] = x[:,indexYb]
+            FE.append(self.fe)
+            iter_best_global.append(min(y)[0])
             
             s = self.s
             Index = Index+1
@@ -367,6 +378,8 @@ class SRS:
                     self.BY = np.append(self.BY,np.min(self.BestValue[s,0:p1]))
                     self.EachPar[:,s] = BX
                     self.__calculate_FE()
+                    FE.append(self.fe)
+                    iter_best_global.append(min(self.BestValue[s, 0:p1]))
                     
                     Xp[:,0:p1] = BestX
 
@@ -438,7 +451,9 @@ class SRS:
         ResultName.append('Time (s)')
         self.result = Result
         self.result_name = ResultName
-        return Result[0],Result[1]
+        FE.append(self.fe+1)
+        iter_best_global.append(self.A*self.BY[self.s])
+        return Result[0], Result[1], iter_best_global, FE
     
     def type_result(self):
         ResultName = self.result_name
