@@ -8,5 +8,5 @@ There are two files here：
 - Other codes are the baseline codes for the Xinanjiang model.
 
 ## ref
-please consider cite the following article:
+please consider cite the following article:  
 Haoshan Wei, Yongqiang Zhang, Changming Liu, Qi Huang, Pengxin Jia, Zhenwu Xu, Yuhan Guo, The strategic random search (SRS) – A new global optimizer for calibrating hydrological models, Environmental Modelling & Software, 2023, https://doi.org/10.1016/j.envsoft.2023.105914.
